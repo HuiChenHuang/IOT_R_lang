@@ -1,0 +1,49 @@
+#從網站取得數據
+boston_data = read.table("https://archive.ics.uci.edu/ml/machine-learning-databases/housing/housing.data", header = FALSE)
+
+#對屬性重新命名
+names(boston_data) = c("CRIM","ZN", "INDUS", "CHAS", "NOX", "RM", "AGE", "DIS", "RAD", "TAX", "PTRATIO", "B", "LSTAT", "PRICE")
+
+#產生訓練樣本(70%), 測試樣本(30%)
+n = 0.3*nrow(boston_data)
+test.index = sample(1:nrow(boston_data),n)
+Train = boston_data[-test.index,]
+Test = boston_data[test.index,]
+
+#資料做重複取樣，抽3組樣本，每組樣本 n = 50
+#樣本-1
+set.seed(123)
+ind_1 = sample(1:nrow(Train), 50)
+subset_1 = Train[ind_1,]
+
+#樣本-2
+set.seed(456)
+ind_2 = sample(1:nrow(Train), 50)
+subset_2 = Train[ind_2,]
+
+#樣本-3
+set.seed(789)
+ind_3 = sample(1:nrow(Train), 50)
+subset_3 = Train[ind_3,]
+
+#對 subset_1, subset_2, subset_3分別建立線性回歸模型，再將Test的預測結果平均起來
+#Model-1:linear regression
+model_1 = lm(PRICE~., subset_1)
+y1 = predict(model_1, Test)
+plot(subset_1)
+
+#Model-2:linear regression
+model_2 = lm(PRICE~., subset_2)
+y2 = predict(model_2, Test)
+
+#Model-3:linear regression
+model_3 = lm(PRICE~., subset_3)
+y3 = predict(model_3, Test)
+
+#Average prediction results
+avg_y = (y1+y2+y3)/3
+
+#MAPE
+y = Test$PRICE
+test.MAPE = mean(abs(y-avg_y)/y)
+cat("MAPE(test) = ", test.MAPE*100, "%\n")
